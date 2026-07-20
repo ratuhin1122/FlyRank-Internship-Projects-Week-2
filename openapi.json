@@ -1,0 +1,178 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Task API",
+    "version": "1.0",
+    "description": "A small CRUD API for a to-do list. Tasks live in memory only, so the list resets every time the server restarts."
+  },
+  "servers": [{ "url": "http://localhost:3000" }],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Describe this API",
+        "responses": {
+          "200": {
+            "description": "Name, version and available endpoints",
+            "content": {
+              "application/json": {
+                "example": { "name": "Task API", "version": "1.0", "endpoints": ["/tasks"] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check the server is alive",
+        "responses": {
+          "200": {
+            "description": "The server is up",
+            "content": { "application/json": { "example": { "status": "ok" } } }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "List all tasks",
+        "responses": {
+          "200": {
+            "description": "The full list of tasks",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NewTask" },
+              "example": { "title": "Buy milk" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created task",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+            }
+          },
+          "400": {
+            "description": "Title missing or empty",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "The id of the task",
+          "schema": { "type": "integer" }
+        }
+      ],
+      "get": {
+        "summary": "Get one task by id",
+        "responses": {
+          "200": {
+            "description": "The requested task",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+            }
+          },
+          "404": {
+            "description": "No task with that id",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a task's title and/or done flag",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TaskUpdate" },
+              "example": { "title": "Buy oat milk", "done": true }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+            }
+          },
+          "400": {
+            "description": "Empty or invalid body",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "No task with that id",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a task",
+        "responses": {
+          "204": { "description": "Deleted — no content returned" },
+          "404": {
+            "description": "No task with that id",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Buy milk" },
+          "done": { "type": "boolean", "example": false }
+        }
+      },
+      "NewTask": {
+        "type": "object",
+        "required": ["title"],
+        "properties": { "title": { "type": "string", "example": "Buy milk" } }
+      },
+      "TaskUpdate": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "Buy oat milk" },
+          "done": { "type": "boolean", "example": true }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": { "error": { "type": "string", "example": "Task 99 not found" } }
+      }
+    }
+  }
+}

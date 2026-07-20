@@ -1,4 +1,6 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const openapiSpec = require('./openapi.json');
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +14,9 @@ let tasks = [
 
 // Lets Express read JSON request bodies into req.body.
 app.use(express.json());
+
+// Swagger UI reads openapi.json and turns it into a clickable page.
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 // The front door: tells a client what this API is.
 app.get('/', (req, res) => {
