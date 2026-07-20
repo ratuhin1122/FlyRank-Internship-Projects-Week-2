@@ -33,16 +33,66 @@
         }
       }
     },
-    "/tasks": {
+    "/stats": {
       "get": {
-        "summary": "List all tasks",
+        "summary": "Count total, done and open tasks",
         "responses": {
           "200": {
-            "description": "The full list of tasks",
+            "description": "A summary of the list",
+            "content": {
+              "application/json": { "example": { "total": 3, "done": 1, "open": 2 } }
+            }
+          }
+        }
+      }
+    },
+    "/reset": {
+      "post": {
+        "summary": "Restore the 3 example tasks",
+        "responses": {
+          "200": {
+            "description": "The freshly seeded list",
             "content": {
               "application/json": {
                 "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } }
               }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "List all tasks, optionally filtered",
+        "parameters": [
+          {
+            "name": "done",
+            "in": "query",
+            "required": false,
+            "description": "Keep only finished (true) or unfinished (false) tasks",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Keep only tasks whose title contains this text",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The matching tasks",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid value for the done filter",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
             }
           }
         }

@@ -5,12 +5,16 @@ const openapiSpec = require('./openapi.json');
 const app = express();
 const PORT = 3000;
 
-// Our whole "database": a list in memory. It disappears when the server stops.
-let tasks = [
+// The 3 example tasks the server starts with. A function, so every call hands
+// back fresh objects — otherwise /reset would return the already-edited ones.
+const seedTasks = () => [
   { id: 1, title: 'Read the assignment', done: true },
   { id: 2, title: 'Build the CRUD API', done: false },
   { id: 3, title: 'Push it to GitHub', done: false },
 ];
+
+// Our whole "database": a list in memory. It disappears when the server stops.
+let tasks = seedTasks();
 
 // Lets Express read JSON request bodies into req.body.
 app.use(express.json());
@@ -28,8 +32,36 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Read: the whole list.
+// Read: the whole list, optionally narrowed by query parameters.
+// ?done=true|false filters by status, ?search=milk matches inside the title.
 app.get('/tasks', (req, res) => {
+  const { done, search } = req.query;
+  let result = tasks;
+
+  if (done !== undefined) {
+    if (done !== 'true' && done !== 'false') {
+      return res.status(400).json({ error: 'Query "done" must be true or false' });
+    }
+    result = result.filter((t) => t.done === (done === 'true'));
+  }
+
+  if (search !== undefined) {
+    const needle = String(search).toLowerCase();
+    result = result.filter((t) => t.title.toLowerCase().includes(needle));
+  }
+
+  res.json(result);
+});
+
+// Stats: the server computing an answer instead of just storing one.
+app.get('/stats', (req, res) => {
+  const done = tasks.filter((t) => t.done).length;
+  res.json({ total: tasks.length, done, open: tasks.length - done });
+});
+
+// Reset: put the 3 example tasks back. Handy for demos.
+app.post('/reset', (req, res) => {
+  tasks = seedTasks();
   res.json(tasks);
 });
 
