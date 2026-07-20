@@ -10,6 +10,9 @@ let tasks = [
   { id: 3, title: 'Push it to GitHub', done: false },
 ];
 
+// Lets Express read JSON request bodies into req.body.
+app.use(express.json());
+
 // The front door: tells a client what this API is.
 app.get('/', (req, res) => {
   res.json({ name: 'Task API', version: '1.0', endpoints: ['/tasks'] });
@@ -35,6 +38,21 @@ app.get('/tasks/:id', (req, res) => {
   }
 
   res.json(task);
+});
+
+// Create: the server never trusts the client, so we validate first.
+app.post('/tasks', (req, res) => {
+  const { title } = req.body || {};
+
+  if (typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'Field "title" is required and must be a non-empty string' });
+  }
+
+  const nextId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1;
+  const task = { id: nextId, title: title.trim(), done: false };
+
+  tasks.push(task);
+  res.status(201).json(task);
 });
 
 app.listen(PORT, () => {
